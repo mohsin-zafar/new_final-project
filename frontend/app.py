@@ -9,6 +9,7 @@ import streamlit as st
 import requests
 import json
 import os
+import pandas as pd
 
 # ============================================
 # PAGE CONFIGURATION
@@ -366,6 +367,109 @@ if predict_button:
                     
                     # Success message
                     st.success("✅ Prediction completed successfully!")
+                    
+                    # ============================================
+                    # VISUALIZATION SECTION
+                    # ============================================
+                    st.markdown("---")
+                    st.markdown("## 📊 Analysis & Visualizations")
+                    
+                    # Create tabs for different visualizations
+                    tab1, tab2, tab3 = st.tabs(["📈 Input Parameters", "🎯 Prediction Gauge", "📊 Feature Analysis"])
+                    
+                    with tab1:
+                        st.subheader("Your Input Parameters")
+                        
+                        # Numerical inputs bar chart
+                        numerical_params = {
+                            "Injection Temp (°C)": injection_temperature,
+                            "Injection Pressure": injection_pressure,
+                            "Cycle Time (s)": cycle_time,
+                            "Cooling Time (s)": cooling_time,
+                            "Material Viscosity": material_viscosity / 10,  # Scale down for visibility
+                            "Ambient Temp (°C)": ambient_temperature,
+                            "Machine Age (yr)": machine_age,
+                            "Operator Exp (yr)": operator_experience,
+                            "Maintenance Hrs": maintenance_hours,
+                        }
+                        
+                        st.bar_chart(numerical_params)
+                        
+                        # Show categorical inputs
+                        col_cat1, col_cat2 = st.columns(2)
+                        with col_cat1:
+                            st.metric("Shift", shift)
+                            st.metric("Machine Type", machine_type)
+                        with col_cat2:
+                            st.metric("Material Grade", material_grade)
+                            st.metric("Day of Week", day_of_week)
+                    
+                    with tab2:
+                        st.subheader("Prediction Performance Gauge")
+                        
+                        predicted_value = result['predicted_parts_per_hour']
+                        
+                        # Create gauge-like visualization using progress bars
+                        # Assuming typical range is 5-70 parts per hour
+                        min_val, max_val = 5, 70
+                        normalized = (predicted_value - min_val) / (max_val - min_val)
+                        normalized = max(0, min(1, normalized))  # Clamp between 0 and 1
+                        
+                        # Color based on performance
+                        if predicted_value < 20:
+                            performance = "🔴 Low Output"
+                            color = "red"
+                        elif predicted_value < 40:
+                            performance = "🟡 Medium Output"
+                            color = "orange"
+                        else:
+                            performance = "🟢 High Output"
+                            color = "green"
+                        
+                        st.markdown(f"### {performance}")
+                        st.progress(normalized)
+                        
+                        col_g1, col_g2, col_g3 = st.columns(3)
+                        with col_g1:
+                            st.metric("Minimum (Typical)", "5 PPH")
+                        with col_g2:
+                            st.metric("Your Prediction", f"{predicted_value:.1f} PPH", 
+                                     delta=f"{predicted_value - 30:.1f} vs avg")
+                        with col_g3:
+                            st.metric("Maximum (Typical)", "70 PPH")
+                    
+                    with tab3:
+                        st.subheader("Feature Impact Analysis")
+                        st.info("These are the most important factors affecting Parts Per Hour output:")
+                        
+                        # Feature importance (based on model coefficients)
+                        feature_importance = {
+                            "Total Cycle Time": -10.06,
+                            "Cooling Time": 2.65,
+                            "Efficiency Score": 2.23,
+                            "Injection Temp": 2.22,
+                            "Machine Age": -2.20,
+                            "Operator Exp": 1.69,
+                            "Machine Type": -1.56,
+                            "Shift": -1.54,
+                            "Injection Pressure": 1.30,
+                        }
+                        
+                        # Display as horizontal bar chart
+                        df_importance = pd.DataFrame({
+                            'Feature': list(feature_importance.keys()),
+                            'Impact': list(feature_importance.values())
+                        })
+                        df_importance = df_importance.sort_values('Impact', ascending=True)
+                        
+                        st.bar_chart(df_importance.set_index('Feature'))
+                        
+                        st.markdown("""
+                        **How to read this chart:**
+                        - **Positive values** (right): Increasing this feature increases output
+                        - **Negative values** (left): Increasing this feature decreases output
+                        - **Larger bars** = More impact on prediction
+                        """)
                     
                     # Show input summary
                     with st.expander("📋 View Input Summary"):
