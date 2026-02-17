@@ -23,8 +23,8 @@ st.set_page_config(
 # ============================================
 # BACKEND API URL
 # ============================================
-# Use environment variable for production, fallback to localhost for development
-BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
+# Use environment variable for production, fallback to Render backend URL
+BACKEND_URL = os.getenv("BACKEND_URL", "https://manufacturing-prediction-backend.onrender.com")
 
 # ============================================
 # CUSTOM CSS STYLING
