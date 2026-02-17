@@ -8,6 +8,7 @@ It provides a user-friendly interface for making predictions.
 import streamlit as st
 import requests
 import json
+import os
 
 # ============================================
 # PAGE CONFIGURATION
@@ -22,11 +23,8 @@ st.set_page_config(
 # ============================================
 # BACKEND API URL
 # ============================================
-# For local development
-BACKEND_URL = "http://localhost:8000"
-
-# For Render deployment - uncomment and update with your actual backend URL
-# BACKEND_URL = "https://your-backend-app.onrender.com"
+# Use environment variable for production, fallback to localhost for development
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 # ============================================
 # CUSTOM CSS STYLING
